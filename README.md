@@ -27,6 +27,7 @@ To-Do:
 - add server index to the file name, between array index and url number
 - add datetimes to each log entry
 - clean up code... it's a mess atm.
+- make a nicer display of download links and their structure/number than it currently is.
 - check file size first (read from site, or to get exact size, curl to get file size from header of the temp dl link - but that requires an aditional curl (if you do it, make it not request body, only header, and add other curl options to make it simpler)) If you read file size from from site, it's here: <font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font><font style="line-height:18px; font-size: 13px;">29.52 MB</font><br />
 - re-download files if size doesn't match (give an optional argument for it, that overrides the overwrite argument)
 - format log to make it actually easy to read
