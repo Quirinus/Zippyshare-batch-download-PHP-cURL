@@ -2,7 +2,9 @@
 A PHP (5.6.3) script that uses cURL to download an array of Zippyshare links.
 _____________________________________________________________________
 
-Run GH_dl.php to start downloading... use the zippy_batch_dl function (at the end of the file) and feed it arguments. (example included, read at the end of features)
+Run GH_dl.php to start downloading... use the zippy_batch_dl function (at the end of the file) and feed it arguments. log.php or log.txt will be created in the download folder.
+
+(working example included, read at the end of features)
 _____________________________________________________________________
 Features:
 - Accepts arrays of zippyshare links, grouped by associative array that contains DL folder names.
@@ -24,6 +26,7 @@ Features:
 To-Do:
 - add server index to the file name, between array index and url number
 - add datetimes to each log entry
+- clean up code... it's a mess atm.
 - check file size first (read from site, or to get exact size, curl to get file size from header of the temp dl link - but that requires an aditional curl (if you do it, make it not request body, only header, and add other curl options to make it simpler)) If you read file size from from site, it's here: <font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font><font style="line-height:18px; font-size: 13px;">29.52 MB</font><br />
 - re-download files if size doesn't match (give an optional argument for it, that overrides the overwrite argument)
 - format log to make it actually easy to read
