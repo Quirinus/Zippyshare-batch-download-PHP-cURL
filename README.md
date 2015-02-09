@@ -27,6 +27,7 @@ To-Do:
 - Cosmetic/speed:
   - add datetimes to each log entry
   - clean up code... it's a mess atm.
+  - add comments to everything. to explain what each code piece does.
   - make a nicer display of download links and their structure/number than it currently is.
   - format log to make it actually easy to read
   - check and note which PHP version and libraries this script uses (I'm running it on Windows 7 with: ApacheFriends XAMPP Version 5.6.3 which uses PHP 5.6.3 (VC11 X86 32bit thread safe) + PEAR, Apache 2.4.4, libraries: glob, curl...)
