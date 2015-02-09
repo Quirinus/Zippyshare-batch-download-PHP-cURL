@@ -24,10 +24,11 @@ Features:
 To-Do:
 - add server index to the file name, between array index and url number
 - add datetimes to each log entry
-- format log to make it actually easy to read
-- add arbitrarily nested arrays of folder/links, along with support to specify download start/end folder/link indexes by having them nested like the folder/link array
 - check file size first (read from site, or to get exact size, curl to get file size from header of the temp dl link - but that requires an aditional curl (if you do it, make it not request body, only header, and add other curl options to make it simpler)) If you read file size from from site, it's here: <font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font><font style="line-height:18px; font-size: 13px;">29.52 MB</font><br />
 - re-download files if size doesn't match (give an optional argument for it, that overrides the overwrite argument)
+- format log to make it actually easy to read
+- check and note which PHP version and libraries this script uses (I'm running it on Windows 7 with: ApacheFriends XAMPP Version 5.6.3 which uses PHP 5.6.3 (VC11 X86 32bit thread safe) + PEAR, Apache 2.4.4, libraries: glob, curl...)
+- add arbitrarily nested arrays of folder/links, along with support to specify download start/end folder/link indexes by having them nested like the folder/link array
 - optimize code (eg. remove various preg matches if it can be done by quicker functions, maybe a faster approach than using the glob function, refactor some code...)
 - increase the dl timeout according to the dl speed, only if script execution time isn't set to 0 (infinite)
 - download resume
