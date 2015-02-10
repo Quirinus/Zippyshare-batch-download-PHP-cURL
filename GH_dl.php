@@ -1,6 +1,5 @@
 <?php
 	
-	include_once('utility.php');
 	include_once('file_list.php');
 
 	function fetch_zippy_dl_page($url, &$p_error)
@@ -144,57 +143,27 @@
 		$algorithm_variables_code = explode('document.getElementById(\'dlbutton\').href', $algorithm_script_code)[0];
 		if (stripos($algorithm_variables_code,'Math') !== false)
 			return "<span style='color:red;'>Page url: $zippy_page_url (error matching algorithm, JS Math function used)</span><br>\r\n";
-		if (stripos($algorithm_variables_code,'var ') === false)
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: algorithm, can't find 'var ')</span><br>\r\n";
-		if (!(preg_match_all('/var ([^\n \$\=]+) \=/i',$algorithm_variables_code, $algorithm_variable_names, PREG_PATTERN_ORDER)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error finding algorithm variable names)</span><br>\r\n";
-		$algorithm_variable_names = $algorithm_variable_names[1];
-		$algorithm_variable_names_dollar = $algorithm_variable_names;
-		array_walk($algorithm_variable_names_dollar, function(&$value, $key) {$value = "$$value";}); //add $ in front of variable names
-		if (!(preg_match('/\/\"\+([^\n]+)\+\"\//i',$algorithm_script_code, $algorithm_number_code)))
+		if (!(preg_match('/\/\"\s*\+\s*([^\n]+)\s*\+\s*\"\//i',$algorithm_script_code, $algorithm_number_code)))
 			return "<span style='color:red;'>Page url: $zippy_page_url (error: can't find algorithm number generating code)</span><br>\r\n";
 		$algorithm_number_code = $algorithm_number_code[1];
-		$algorithm_number_code = str_replace($algorithm_variable_names,$algorithm_variable_names_dollar,$algorithm_number_code); //add $ to variable names in code
-		$algorithm_variables_code = str_replace('var ','$',$algorithm_variables_code);
-		
-		//temporary solution to this algorithm:
-		
-		// <script type="text/javascript">
-			// var n = 475573%2;
-			// var b = 475573%3;
-			// var z = 475576;
-			// document.getElementById('dlbutton').href = "/d/80080480/"+(n + b + z - 3)+"/%28GHM_MSL%29_01-FWBT.7z";
-			// if (document.getElementById('fimage')) {
-				// document.getElementById('fimage').href = "/i/80080480/"+(n + b + z - 3)+"/%28GHM_MSL%29_01-FWBT.7z";
-			// }
-		// </script>
-		
-		// $preg_result &= preg_match('/var n \= ([0-9]+)\%([0-9]+);/i', $algorithm_script_code, $checks_n);
-		// list(,$check1_n,$check2_n) = $checks_n;
-		// $n = $check1_n%$check2_n;
-		// $preg_result &= preg_match('/var b \= ([0-9]+)\%([0-9]+);/i', $algorithm_script_code, $checks_b);
-		// list(,$check1_b,$check2_b) = $checks_b;
-		// $b = $check1_b%$check2_b;
-		// $preg_result &= preg_match('/var z \= ([0-9]+);/i', $algorithm_script_code, $checks_z);
-		// list(,$check1_z) = $checks_z;
-		// $z = $check1_z;
-		// $mod_check = ($n + $b + $z - 3);
-		
-		// if ($preg_result == 0)
-		// {
-			// return "<span style='color:red;'>Page url: $zippy_page_url (error matching: cookie, or name of end of download url)</span><br>\r\n";
-		// }
-		
-		//end temporary solution to algorithm code
+		if (stripos($algorithm_variables_code,'var ') !== false)
+		{
+			if (!(preg_match_all('/var ([^\n \$\=]+) \=/i',$algorithm_variables_code, $algorithm_variable_names, PREG_PATTERN_ORDER)))
+				return "<span style='color:red;'>Page url: $zippy_page_url (error finding algorithm variable names)</span><br>\r\n";
+			$algorithm_variable_names = $algorithm_variable_names[1];
+			$algorithm_variable_names_dollar = $algorithm_variable_names;
+			array_walk($algorithm_variable_names_dollar, function(&$value, $key) {$value = "$$value";}); //add $ in front of variable names
+			$algorithm_number_code = str_replace($algorithm_variable_names,$algorithm_variable_names_dollar,$algorithm_number_code); //add $ to variable names in code
+			$algorithm_variables_code = str_replace('var ','$',$algorithm_variables_code);
+			eval($algorithm_variables_code);
+		}
 		
 		if (!(preg_match('/www([0-9]*)\./i',$zippy_page_url, $zippy_page_server)))
 			return "<span style='color:red;'>Page url: $zippy_page_url (error: can't find server number)</span><br>\r\n";
-		if (!(preg_match("/\+\"\/([^\n\"]+)\";/i",$algorithm_script_code, $zippy_dl_url_name)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error matching the name the file in the download url)</span><br>\r\n";
+		if (!(preg_match("/\+\s*\"\/([^\n\"]+)\";/i",$algorithm_script_code, $zippy_dl_url_name)))
+			return "<span style='color:red;'>Page url: $zippy_page_url (error finding the name of the file in the download url)</span><br>\r\n";
 		
-		eval($algorithm_variables_code);
 		eval('$mod_check = '.$algorithm_number_code.';');
-		
 		if (!($mod_check))
 			return "<span style='color:red;'>Page url: $zippy_page_url (error evaluating the variable number code part from the url)</span><br>\r\n";
 		
@@ -304,6 +273,9 @@
 	zippy_batch_dl($gh_zippy_links, $gh_folder_names, $gh_parent_folder, $start_folder, $end_folder, $start_link, $end_link);
 	
 	//to-do maybe:
+	//add server to the file name
+	//add datetimes to log entries
+	//add arbitrarily nested array of folder/links, along with support to specify download start/end folder/link indexes by having them nested like the folder/link array
 	//check file size first (curl or read from site) //<font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font>            <font style="line-height:18px; font-size: 13px;">29.52 MB</font><br />
 	//re-download files if size doesn't match
 	//increase the dl time according to the dl speed, only if script execution time isn't set to infinite
