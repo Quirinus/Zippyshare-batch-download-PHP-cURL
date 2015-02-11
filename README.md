@@ -2,7 +2,7 @@
 A PHP (5.6.3) script that uses cURL to download an array of Zippyshare links.
 _____________________________________________________________________
 
-Run GH_dl.php to start downloading... use the zippy_batch_dl function (at the end of the file) and feed it arguments. log.php or log.txt will be created in the download folder.
+Run dl.php to start downloading... use the zippy_batch_dl function (at the end of the file) and feed it arguments. log.php or log.txt will be created in the download folder.
 
 (working example included, read at the end of features)
 _____________________________________________________________________
