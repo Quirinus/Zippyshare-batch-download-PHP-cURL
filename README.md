@@ -34,7 +34,7 @@ To-Do:
   - optimize code (eg. remove various preg matches if it can be done by quicker functions, maybe a faster approach than using the glob function, refactor some code...)
 - Features/functional:
   - add server index to the file name, between array index and url number
-  - check file size first (read from site, or to get exact size, curl to get file size from header of the temp dl link - but that requires an aditional curl (if you do it, make it not request body, only header, and add other curl options to make it simpler)) If you read file size from from site, it's here: <font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font><font style="line-height:18px; font-size: 13px;">29.52 MB</font><br />
+  - check file size first (read from site, or to get exact size, curl to get file size from header of the temp dl link - but that requires an aditional curl (if you do it, make it not request body, only header, and add other curl options to make it simpler)) If you read file size from from site, it's here: &lt;font style=&quot;line-height:18px; font-size: 13px; font-weight: bold;&quot;&gt;Size:&lt;/font&gt;&lt;font style=&quot;line-height:18px; font-size: 13px;&quot;&gt;29.52 MB&lt;/font&gt;&lt;br /&gt;
   - re-download files if size doesn't match (give an optional argument for it, that overrides the overwrite argument)
   - make it constantly check a specified file for a 1 or 0 value. in case it's 0, stop running the script after finishing the current download.
   - add arbitrarily nested arrays of folder/links, along with support to specify download start/end folder/link indexes by having them nested like the folder/link array
