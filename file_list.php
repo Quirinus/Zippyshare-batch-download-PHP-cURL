@@ -21,38 +21,33 @@
 		return str_replace($bad, '', $path);
 	}
 	
-	//fetching a bunch of links and folders from a random site (only for testing purposes)
-	$gh_file = file_get_contents('GH_example.html');
+	$gh_file = file_get_contents('GH_example.html'); //fetching a bunch of links and folders from a random site (only for testing purposes)
 	
-	$table_delimiter = '<table class="wikitable';
-	$gh_parts = explode($table_delimiter, $gh_file);
-		
 	preg_match_all('/<span class="mw\-headline">([^\n<]+)<\/span>/i', $gh_file, $gh_folder_names);
 	$gh_folder_names = array_map('fix_bad_path_names',$gh_folder_names[1]);
 	
+	$table_delimiter = '<table class="wikitable';
+	$gh_parts = explode($table_delimiter, $gh_file);
 	$skip_tables = 4;
 	$gh_parts = array_slice($gh_parts, $skip_tables);
 	array_shift($gh_folder_names);
 	
 	$pattern = '/href\="http:\/\/www[0-9]*\.zippyshare\.com\/v\/[0-9]*\/file.html"/i';
-	$gh_match_count_total = 0;
 	$gh_parts_count = count($gh_parts);
-
 	for ($i=0;$i<$gh_parts_count;$i++)
 	{
 		$gh_parts_match_count[$i] = preg_match_all($pattern, $gh_parts[$i], $gh_zippy_links[$i]);
 		$gh_zippy_links[$i] = array_map('trim_stuff',$gh_zippy_links[$i][0]);
 	}
 	$gh_match_count_total = array_sum($gh_parts_match_count);
-	$gh_zippy_links_by_folder_index = $gh_zippy_links;
+	//$gh_zippy_links_by_folder_index = $gh_zippy_links;
 	$gh_zippy_links = array_combine($gh_folder_names,$gh_zippy_links);
 	
 	//shows link/folder results
 	echo "Total zippyshare link count: $gh_match_count_total";
 	print_r2($gh_folder_names);
 	print_r2(array_combine($gh_folder_names,$gh_parts_match_count));
-	echo "<hr>";
-	echo "GH Zippyshare links:";
+	echo "<hr>GH Zippyshare links:";
 	print_r2($gh_zippy_links);
 
 ?>
