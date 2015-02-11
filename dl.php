@@ -198,34 +198,34 @@
 		}
 	}
 	
-	function zippy_batch_dl($gh_zippy_links, $gh_folder_names, $gh_parent_folder = 'GH_DL', $start_folder = 0, $end_folder = 'end', $start_link = 0, $end_link = 'end', $dl_response_time=0, $dl_timeout=0, $sleep_between=2, $dl_fetch_delay=1, $overwrite=0)
+	function zippy_batch_dl($zippy_links, $folder_names, $parent_folder = 'DL', $start_folder = 0, $end_folder = 'end', $start_link = 0, $end_link = 'end', $dl_response_time=0, $dl_timeout=0, $sleep_between=2, $dl_fetch_delay=1, $overwrite=0)
 	{
-		$folder_paths = $gh_folder_names;
-		array_walk($folder_paths, function(&$value, $key, $gh_parent_folder) {$value = "$gh_parent_folder\\$key.$value";}, $gh_parent_folder);
+		$folder_paths = $folder_names;
+		array_walk($folder_paths, function(&$value, $key, $parent_folder) {$value = "$parent_folder\\$key.$value";}, $parent_folder);
 		create_folders($folder_paths);
-		$folder_end = $end_folder === 'end' ? count($gh_folder_names) - 1 : $end_folder;
+		$folder_end = $end_folder === 'end' ? count($folder_names) - 1 : $end_folder;
 		$datetime = new DateTime();
 		$datetime = $datetime->format('d-m-Y H:i:s (P \U\T\C)');
-		file_put_contents("$gh_parent_folder\\log.txt", "Session started: $datetime<br>\r\n", FILE_APPEND);
-		if (!(file_exists("$gh_parent_folder\\log.php")))
+		file_put_contents("$parent_folder\\log.txt", "Session started: $datetime<br>\r\n", FILE_APPEND);
+		if (!(file_exists("$parent_folder\\log.php")))
 		{
-			$log_php = "<!DOCTYPE html>\r\n<html>\r\n<head><meta charset='utf-8'><title>GH DL Log</title></head>\r\n<body>\r\n<?php echo file_get_contents(\"log.txt\") ?>\r\n</body>\r\n</html>";
-			file_put_contents("$gh_parent_folder\\log.php", $log_php);
+			$log_php = "<!DOCTYPE html>\r\n<html>\r\n<head><meta charset='utf-8'><title>DL Log</title></head>\r\n<body>\r\n<?php echo file_get_contents(\"log.txt\") ?>\r\n</body>\r\n</html>";
+			file_put_contents("$parent_folder\\log.php", $log_php);
 		}
 		for ($i = $start_folder; $i <= $folder_end; $i++)
 		{
-			$link_end = $end_link === 'end' ? count($gh_zippy_links[$gh_folder_names[$i]]) - 1 : $end_link;
+			$link_end = $end_link === 'end' ? count($zippy_links[$folder_names[$i]]) - 1 : $end_link;
 			for ($j = $start_link; $j <= $link_end; $j++)
 			{
-				file_put_contents("$gh_parent_folder\\log.txt", "zippy_fetch_dl({$gh_zippy_links[$gh_folder_names[$i]][$j]}, {$folder_paths[$i]}, $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, ".(string)$overwrite.")<br>\r\n", FILE_APPEND);
-				$result = zippy_fetch_dl($gh_zippy_links[$gh_folder_names[$i]][$j], $folder_paths[$i], $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite);
-				file_put_contents("$gh_parent_folder\\log.txt", $result, FILE_APPEND);
+				file_put_contents("$parent_folder\\log.txt", "zippy_fetch_dl({$zippy_links[$folder_names[$i]][$j]}, {$folder_paths[$i]}, $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, ".(string)$overwrite.")<br>\r\n", FILE_APPEND);
+				$result = zippy_fetch_dl($zippy_links[$folder_names[$i]][$j], $folder_paths[$i], $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite);
+				file_put_contents("$parent_folder\\log.txt", $result, FILE_APPEND);
 				sleep($sleep_between);
 			}
 		}
 	}
 	
-	$gh_parent_folder = 'GH_DL';
+	$parent_folder = 'GH_DL';
 	
 	$start_folder = 0;
 	$end_folder = 'end';
@@ -233,7 +233,7 @@
 	$start_link = 0;
 	$end_link = 'end';
 	
-	zippy_batch_dl($gh_zippy_links, $gh_folder_names, $gh_parent_folder, $start_folder, $end_folder, $start_link, $end_link);
+	zippy_batch_dl($zippy_links, $folder_names, $parent_folder, $start_folder, $end_folder, $start_link, $end_link);
 	
 	//to-do maybe:
 	//add server to the file name
