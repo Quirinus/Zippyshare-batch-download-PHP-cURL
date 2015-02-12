@@ -129,7 +129,8 @@
 			$algorithm_variable_names_dollar = $algorithm_variable_names;
 			array_walk($algorithm_variable_names_dollar, function(&$value, $key) {$value = "$$value";}); //add $ in front of variable names
 			$algorithm_number_code = str_replace($algorithm_variable_names,$algorithm_variable_names_dollar,$algorithm_number_code); //add $ to variable names in code
-			$algorithm_variables_code = str_replace('var ','$',$algorithm_variables_code);
+			$algorithm_variables_code = str_replace($algorithm_variable_names,$algorithm_variable_names_dollar,$algorithm_variables_code);
+			$algorithm_variables_code = str_replace('var ','',$algorithm_variables_code);
 			eval($algorithm_variables_code);
 		}
 		
