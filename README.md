@@ -10,7 +10,7 @@ Features:
 - Accepts arrays of zippyshare links, grouped by associative array that contains DL folder names.
 - Adapts to temporary download link number generating algorithm changes reasonably well. (other scripts require manualy specifying it, thus having to stop downloading)
 - Names files by index, as they appear in the array, then by download link number, and then by file name.
-- While downloading, the file name is modified to be *.part.file name.part - when finished it is renamed to remove both .part .
+- While downloading, the file name is modified to be *.part.file_name.part - when finished it is renamed to remove both .part .
 - When starting a new session, always deletes partially downloaded files and starts downloading them again.
 - Can choose if you want to overwrite existing files.
 - Checks if files already exist by searching the folder for index number and download link number. Skips already existing complete downloads (unless overwrite is on).
