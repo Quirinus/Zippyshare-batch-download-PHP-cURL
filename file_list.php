@@ -1,5 +1,8 @@
 <?php
 	
+	//author: Ivan Jelenić (Quirinus) @ GitHub
+	
+	//don't remember where I got it from, probably print_r php docs comments
 	function print_r2($val)
 	{
 		echo '<pre>';

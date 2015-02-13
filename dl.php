@@ -1,6 +1,10 @@
 <?php
 	
+	//author: Ivan Jelenić (Quirinus) @ GitHub
+	
 	include_once('file_list.php');
+	
+	$version_number = 'v1.5';
 	
 	/*$filesize = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD); //in bytes
 	if ($filesize)
@@ -207,7 +211,7 @@
 		$folder_end = $end_folder === 'end' ? count($folder_names) - 1 : $end_folder;
 		$datetime = new DateTime();
 		$datetime = $datetime->format('d-m-Y H:i:s (P \U\T\C)');
-		file_put_contents("$parent_folder\\log.txt", "Session started: $datetime<br>\r\n", FILE_APPEND);
+		file_put_contents("$parent_folder\\log.txt", "Session started: $datetime (script $version_number)<br>\r\n", FILE_APPEND);
 		if (!(file_exists("$parent_folder\\log.php")))
 		{
 			$log_php = "<!DOCTYPE html>\r\n<html>\r\n<head><meta charset='utf-8'><title>DL Log</title></head>\r\n<body>\r\n<?php echo file_get_contents(\"log.txt\") ?>\r\n</body>\r\n</html>";
@@ -229,10 +233,10 @@
 	$parent_folder = 'DL';
 	
 	$start_folder = 0;
-	$end_folder = 0;
+	$end_folder = 'end';
 	
 	$start_link = 0;
-	$end_link = 0;
+	$end_link = 'end';
 	
 	zippy_batch_dl($zippy_links, $folder_names, $parent_folder, $start_folder, $end_folder, $start_link, $end_link);
 	
