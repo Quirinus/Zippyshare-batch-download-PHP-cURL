@@ -1,6 +1,7 @@
 <?php
 	
 	//author: Ivan Jelenić (Quirinus) @ GitHub
+	//A PHP (5.6.3) script that uses cURL to download an array of Zippyshare links.
 	
 	//get the list of files to download
 	include_once('file_list.php');
