@@ -2,15 +2,45 @@
 	
 	//author: Ivan Jelenić (Quirinus) @ GitHub
 	
+	//get the list of files to download
 	include_once('file_list.php');
 	
 	$version_number = 'v1.5';
+	
+	//coloring errors for the log file
+	function red($text)
+	{
+		return "<span class='red'>$text</span><br>\r\n";
+	}
+	
+	//create just one level of folders
+	function create_folders($paths) //https://gist.github.com/timw4mail/4172083 //http://aidanlister.com/2004/04/recursively-creating-directory-structures/
+	{
+		if (is_array($paths))
+		{
+			foreach ($paths as $path)
+			{
+				if (!file_exists($path))
+				{
+					mkdir($path, 0777, true);
+				}
+			}
+		}
+		else
+		{
+			if (!file_exists($paths))
+			{
+				mkdir($paths, 0777, true);
+			}
+		}
+	}
 	
 	/*$filesize = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD); //in bytes
 	if ($filesize)
 		set_time_limit(($filesize/(8*1024))/$dl_speed); //dl speed in kb/s*/
 
-	function fetch_zippy_dl_page($url, $response_time, $timeout, &$p_error)
+	//get zippyshare download page
+	function _fetch_zippy_dl_page($url, $response_time, $timeout, &$p_error)
 	{
 		if ($response_time > $timeout)
 			$timeout = $response_time;
@@ -28,7 +58,8 @@
 		return $page;
 	}
 	
-	function zippy_dl($dl_url, $referral_url, $cookie_jsid, $dl_path, $dl_response_time, $dl_timeout, &$c_error)
+	//download zippyshare file
+	function _zippy_dl($dl_url, $referral_url, $cookie_jsid, $dl_path, $dl_response_time, $dl_timeout, &$c_error)
 	{
 		if ($dl_response_time > $dl_timeout)
 			$dl_timeout = $dl_response_time;
@@ -58,33 +89,15 @@
 		fclose($fp);
 	}
 	
-	function create_folders($paths) //https://gist.github.com/timw4mail/4172083 //http://aidanlister.com/2004/04/recursively-creating-directory-structures/
+	//download one file and write to log file
+	function _zippy_fetch_dl($zippy_page_url, $folder_path, $file_index, $dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite=false)
 	{
-		if (is_array($paths))
-		{
-			foreach ($paths as $path)
-			{
-				if (!file_exists($path))
-				{
-					mkdir($path, 0777, true);
-				}
-			}
-		}
-		else
-		{
-			if (!file_exists($paths))
-			{
-				mkdir($paths, 0777, true);
-			}
-		}
-	}
-
-	function zippy_fetch_dl($zippy_page_url, $folder_path, $file_index,	$dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite=false)
-	{
-		preg_match('/\/v\/([^\n\\/]+)\/file\./i',$zippy_page_url, $zippy_url_number);
+		preg_match('/\/v\/([^\n\\/]+)\/file\./i',$zippy_page_url, $zippy_url_number); //get the unique url number
 		$dirname = dirname(__FILE__);
+		
+		//check if the file is already downloaded, by url number
 		$glob_match = str_replace('\\','/',"$dirname/$folder_path")."/$file_index.{$zippy_url_number[1]}.*";
-		$glob = glob($glob_match, GLOB_NOSORT); // GLOB_NOSORT | GLOB_NOESCAPE
+		$glob = glob($glob_match, GLOB_NOSORT); //GLOB_NOSORT | GLOB_NOESCAPE 
 		
 		if (count($glob))
 		{
@@ -100,34 +113,36 @@
 			}
 		}
 		
+		//fetch the download page, and check for errors
 		$p_error = '';
-		$zippy_page = fetch_zippy_dl_page($zippy_page_url, $dl_response_time, $dl_timeout, $p_error);
+		$zippy_page = _fetch_zippy_dl_page($zippy_page_url, $dl_response_time, $dl_timeout, $p_error);
 		if (($p_error !== '')||($zippy_page === false))
 		{
-			return "<span style='color:red;'>Page url: $zippy_page_url (Error fetching: $p_error)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (Error fetching: $p_error)");
 		}
 		if (trim($zippy_page) == '')
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: page empty)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error: page empty)");
 		if (!(preg_match('/<title>([^\n\<]*)<\/title>/i', $zippy_page, $title)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: No title. Wrong page - title doesn't have 'Zippyshare.com - ')</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error: No title. Wrong page - title doesn't have 'Zippyshare.com - ')");
 		if (stripos($title[1],'Zippyshare.com - ') === false)
-			return "<span style='color:red;'>Page url: $zippy_page_url Page title: $title (error: wrong page - title doesn't have 'Zippyshare.com - ')</span><br>\r\n";
+			return red("Page url: $zippy_page_url Page title: $title (error: wrong page - title doesn't have 'Zippyshare.com - ')");
 		if (stripos($zippy_page,'File does not exist on this server') !== false)
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: file removed/deleted from zippy share or wrong zippyshare link)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error: file removed/deleted from zippy share or wrong zippyshare link)");
 		
 		if (!(preg_match('/Set\-Cookie: JSESSIONID=([^\n\;]+); Path=/i', $zippy_page, $zippy_cookie_jsid)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error matching cookie)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error matching cookie)");
 		
+		//try to solve the anti-bot algorithm to get the dl link's variable verification number
 		$algorithm_script_code = end(explode('<script type="text/javascript">',explode('document.getElementById(\'fimage\').href',$zippy_page)[0]));
 		$algorithm_variables_code = explode('document.getElementById(\'dlbutton\').href', $algorithm_script_code)[0];
 		if (stripos($algorithm_variables_code,'Math') !== false)
-			return "<span style='color:red;'>Page url: $zippy_page_url (error matching algorithm, JS Math function used)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error matching algorithm, JS Math function used)");
 		if (!(preg_match('/\/\s*([^\n\/]*)"\s*\+\s*([^\n]+)\s*\+\s*"([^\n\/]*)\//i',$algorithm_script_code, $algorithm_number_code)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: can't find algorithm number generating code)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error: can't find algorithm number generating code)");
 		if (stripos($algorithm_variables_code,'var ') !== false)
 		{
 			if (!(preg_match_all('/var ([^\n \$\=]+) \=/i',$algorithm_variables_code, $algorithm_variable_names, PREG_PATTERN_ORDER)))
-				return "<span style='color:red;'>Page url: $zippy_page_url (error finding algorithm variable names)</span><br>\r\n";
+				return red("Page url: $zippy_page_url (error finding algorithm variable names)");
 			$algorithm_variable_names = $algorithm_variable_names[1];
 			$algorithm_variable_names_dollar = $algorithm_variable_names;
 			array_walk($algorithm_variable_names_dollar, function(&$value, $key) {$value = "$$value";}); //add $ in front of variable names
@@ -136,17 +151,19 @@
 			$algorithm_variables_code = str_replace('var ','',$algorithm_variables_code);
 			eval($algorithm_variables_code);
 		}
-
-		if (!(preg_match('/www([0-9]*)\./i',$zippy_page_url, $zippy_page_server)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error: can't find server number)</span><br>\r\n";
-		if (!(preg_match("/\+\s*\"[^\n\/]*\/([^\n\"]+)\";/i",$algorithm_script_code, $zippy_dl_url_name)))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error finding the name of the file in the download url)</span><br>\r\n";
 		
-				eval('$mod_check = "'.$algorithm_number_code[1].'".'.$algorithm_number_code[2].'."'.$algorithm_number_code[3].'";');
+		//get server number, file name and variable verification number
+		if (!(preg_match('/www([0-9]*)\./i',$zippy_page_url, $zippy_page_server)))
+			return red("Page url: $zippy_page_url (error: can't find server number)");
+		if (!(preg_match("/\+\s*\"[^\n\/]*\/([^\n\"]+)\";/i",$algorithm_script_code, $zippy_dl_url_name)))
+			return red("Page url: $zippy_page_url (error finding the name of the file in the download url)");
+		
+		eval('$mod_check = "'.$algorithm_number_code[1].'".'.$algorithm_number_code[2].'."'.$algorithm_number_code[3].'";');
 		
 		if (!($mod_check))
-			return "<span style='color:red;'>Page url: $zippy_page_url (error evaluating the variable number code part from the url)</span><br>\r\n";
+			return red("Page url: $zippy_page_url (error evaluating the variable number code part from the url)");
 		
+		//make dl url and path
 		$referral_url = $zippy_page_url;
 		$dl_url = "http://www{$zippy_page_server[1]}.zippyshare.com/d/{$zippy_url_number[1]}/$mod_check/{$zippy_dl_url_name[1]}";
 		$cookie_jsid = $zippy_cookie_jsid[1];
@@ -154,6 +171,7 @@
 		$dl_path_part = "$folder_path\\$file_index.{$zippy_url_number[1]}.part.".fix_bad_path_names(rawurldecode($zippy_dl_url_name[1])).".part";
 		set_time_limit($dl_timeout); //0 = unlimited
 		
+		//download file if it doesn't already exist, or incomplete, of if overwrite on
 		if (file_exists($dl_path)&&(!$overwrite))
 		{
 			return "<s>Skipping: $dl_path || $dl_url (file already exists and overwrite off)</s><br>\r\n";
@@ -165,31 +183,35 @@
 			
 			if (file_exists($dl_path))
 			{
-				unlink($dl_path);
+				unlink($dl_path); //delete
 			}
 			if (file_exists($dl_path_part))
 			{
 				unlink($dl_path_part);
 			}
 			
+			//download the file
 			$c_error = '';
-			zippy_dl($dl_url, $referral_url, $cookie_jsid, $dl_path_part, $dl_response_time, $dl_timeout, $c_error);
+			_zippy_dl($dl_url, $referral_url, $cookie_jsid, $dl_path_part, $dl_response_time, $dl_timeout, $c_error);
 			if ($c_error !== '')
 			{
+				//full file name already exists
 				if (file_exists($dl_path))
 				{
 					unlink($dl_path);
-					return "<span style='color:red;'>Page url: $zippy_page_url || Deleted file: $dl_path (Error downloading: $c_error)</span><br>\r\n";
+					return red("Page url: $zippy_page_url || Deleted file: $dl_path (Error downloading: $c_error)");
 				}
+				//partialy downloaded file already exists
 				if (file_exists($dl_path_part))
 				{
 					unlink($dl_path_part);
-					return "<span style='color:red;'>Page url: $zippy_page_url || Deleted file: $dl_path_part (Error downloading: $c_error)</span><br>\r\n";
+					return red("Page url: $zippy_page_url || Deleted file: $dl_path_part (Error downloading: $c_error)");
 				}
 				
-				return "<span style='color:red;'>Page url: $zippy_page_url || File path: $dl_path_part (Error downloading: $c_error)</span><br>\r\n";
+				return red("Page url: $zippy_page_url || File path: $dl_path_part (Error downloading: $c_error)");
 			}
 			
+			//when dl over, if present, delete old full file, and remove "part" from the name of the now finished file
 			if (file_exists($dl_path))
 			{
 				unlink($dl_path);
@@ -199,37 +221,42 @@
 				rename($dl_path_part, $dl_path);
 			}
 			$file_size = round(filesize($dl_path)/(1024*1024),2);
-			return "<span style='color:green;'>Download complete: $dl_path ($file_size MB) || DL URL: $dl_url</span><br>\r\n";
+			return "<span class='green'>Download complete: $dl_path ($file_size MB) || DL URL: $dl_url</span><br>\r\n";
 		}
 	}
 	
+	//download multiple files
 	function zippy_batch_dl($zippy_links, $folder_names, $parent_folder = 'DL', $start_folder = 0, $end_folder = 'end', $start_link = 0, $end_link = 'end', $dl_response_time=0, $dl_timeout=0, $sleep_between=2, $dl_fetch_delay=1, $overwrite=0)
 	{
+		//turn folder array into a flat array with paths, and create them
 		$folder_paths = $folder_names;
 		array_walk($folder_paths, function(&$value, $key, $parent_folder) {$value = "$parent_folder\\$key.$value";}, $parent_folder);
 		create_folders($folder_paths);
-		$folder_end = $end_folder === 'end' ? count($folder_names) - 1 : $end_folder;
+		$folder_end = $end_folder === 'end' ? count($folder_names) - 1 : $end_folder; //if the number of folders to download is 'end' then download till the end
 		$datetime = new DateTime();
 		$datetime = $datetime->format('d-m-Y H:i:s (P \U\T\C)');
 		file_put_contents("$parent_folder\\log.txt", "Session started: $datetime (script $version_number)<br>\r\n", FILE_APPEND);
 		if (!(file_exists("$parent_folder\\log.php")))
 		{
-			$log_php = "<!DOCTYPE html>\r\n<html>\r\n<head><meta charset='utf-8'><title>DL Log</title></head>\r\n<body>\r\n<?php echo file_get_contents(\"log.txt\") ?>\r\n</body>\r\n</html>";
+			$log_php = "<!DOCTYPE html>\r\n<html>\r\n<head><meta charset='utf-8'><title>DL Log</title><style>.red{color:red} .green{color:green}</style></head>\r\n<body>\r\n<?php echo file_get_contents(\"log.txt\") ?>\r\n</body>\r\n</html>";
 			file_put_contents("$parent_folder\\log.php", $log_php);
 		}
+		
+		//loop over the folders and links to download, and do the download + log
 		for ($i = $start_folder; $i <= $folder_end; $i++)
 		{
 			$link_end = $end_link === 'end' ? count($zippy_links[$folder_names[$i]]) - 1 : $end_link;
 			for ($j = $start_link; $j <= $link_end; $j++)
 			{
-				file_put_contents("$parent_folder\\log.txt", "zippy_fetch_dl({$zippy_links[$folder_names[$i]][$j]}, {$folder_paths[$i]}, $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, ".(string)$overwrite.")<br>\r\n", FILE_APPEND);
-				$result = zippy_fetch_dl($zippy_links[$folder_names[$i]][$j], $folder_paths[$i], $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite);
+				file_put_contents("$parent_folder\\log.txt", "_zippy_fetch_dl({$zippy_links[$folder_names[$i]][$j]}, {$folder_paths[$i]}, $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, ".(string)$overwrite.")<br>\r\n", FILE_APPEND);
+				$result = _zippy_fetch_dl($zippy_links[$folder_names[$i]][$j], $folder_paths[$i], $j, $dl_response_time, $dl_timeout, $dl_fetch_delay, $overwrite);
 				file_put_contents("$parent_folder\\log.txt", $result, FILE_APPEND);
 				sleep($sleep_between);
 			}
 		}
 	}
 	
+	//example usage
 	$parent_folder = 'DL';
 	
 	$start_folder = 0;

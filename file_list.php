@@ -26,15 +26,18 @@
 	
 	$file = file_get_contents('GH_example.html'); //fetching a bunch of links and folders from a random site (only for testing purposes)
 	
+	//get table names for grouping files in dl folders
 	preg_match_all('/<span class="mw\-headline">([^\n<]+)<\/span>/i', $file, $folder_names);
 	$folder_names = array_map('fix_bad_path_names',$folder_names[1]);
 	
+	//skip first 4 tables as they don't contain dl links
 	$table_delimiter = '<table class="wikitable';
 	$parts = explode($table_delimiter, $file);
 	$skip_tables = 4;
 	$parts = array_slice($parts, $skip_tables);
 	array_shift($folder_names);
 	
+	//extract links and put them in an array that groups them by folder name
 	$pattern = '/href\="http:\/\/www[0-9]*\.zippyshare\.com\/v\/[0-9]*\/file.html"/i';
 	$parts_count = count($parts);
 	for ($i=0;$i<$parts_count;$i++)
