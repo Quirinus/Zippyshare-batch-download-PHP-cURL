@@ -1,11 +1,20 @@
 <?php
 	
+	//name: Zippyshare batch download (PHP 5.6.3 & cURL)
+	//description: Allows automatic download of Zippyshare links and places them in folders.
+	//source: https://github.com/Quirinus/Zippyshare-batch-download-PHP-cURL
 	//author: Ivan Jelenić (Quirinus) @ GitHub
 	
-	//get the list of files to download
-	include_once('file_list.php');
+	$version_number = 'v1.6';
 	
-	$version_number = 'v1.5';
+	//http://stackoverflow.com/a/3380159/2331033
+	function fix_bad_path_names($path)
+	{
+		$bad = array_merge(
+			array_map('chr', range(0,31)),
+			array('<', '>', ':', '"', "/", "\\", '|', '?', '*')); //cannot be contained in file/folder names
+		return trim(str_replace($bad, '', $path));
+	}
 	
 	//coloring errors for the log file
 	function red($text)
@@ -14,27 +23,24 @@
 	}
 	
 	//create just one level of folders
-	function create_folders($paths) //https://gist.github.com/timw4mail/4172083 //http://aidanlister.com/2004/04/recursively-creating-directory-structures/
+	function create_folders($paths)
 	{
 		if (is_array($paths))
 		{
 			foreach ($paths as $path)
 			{
 				if (!file_exists($path))
-				{
 					mkdir($path, 0777, true);
-				}
 			}
 		}
 		else
 		{
 			if (!file_exists($paths))
-			{
 				mkdir($paths, 0777, true);
-			}
 		}
 	}
 	
+	//set time limit for the dl according to the file size and dl speed
 	/*$filesize = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD); //in bytes
 	if ($filesize)
 		set_time_limit(($filesize/(8*1024))/$dl_speed); //dl speed in kb/s*/
@@ -101,15 +107,13 @@
 		
 		if (count($glob))
 		{
-			if ((file_exists($glob[0]))&&(!$overwrite))
+			if (file_exists($glob[0]) && !$overwrite)
 			{
 				$skip_file = $glob[0];
 				$glob_match = str_replace('\\','/',"$dirname/$folder_path")."/$file_index.{$zippy_url_number[1]}.part.*";
 				$glob = glob($glob_match, GLOB_NOSORT); // GLOB_NOSORT | GLOB_NOESCAPE
 				if (!count($glob))
-				{
 					return "<s>Skipping: $skip_file || $zippy_page_url (pre-url-fetch check: file already exists)</s><br>\r\n";
-				}
 			}
 		}
 		
@@ -117,15 +121,13 @@
 		$p_error = '';
 		$zippy_page = _fetch_zippy_dl_page($zippy_page_url, $dl_response_time, $dl_timeout, $p_error);
 		if (($p_error !== '')||($zippy_page === false))
-		{
 			return red("Page url: $zippy_page_url (Error fetching: $p_error)");
-		}
 		if (trim($zippy_page) == '')
 			return red("Page url: $zippy_page_url (error: page empty)");
 		if (!(preg_match('/<title>([^\n\<]*)<\/title>/i', $zippy_page, $title)))
-			return red("Page url: $zippy_page_url (error: No title. Wrong page - title doesn't have 'Zippyshare.com - ')");
+			return red("Page url: $zippy_page_url (error: No title. Wrong page? Stop.)");
 		if (stripos($title[1],'Zippyshare.com - ') === false)
-			return red("Page url: $zippy_page_url Page title: $title (error: wrong page - title doesn't have 'Zippyshare.com - ')");
+			return red("Page url: $zippy_page_url Page title: $title (error: wrong page - title doesn't contain 'Zippyshare.com - ')");
 		if (stripos($zippy_page,'File does not exist on this server') !== false)
 			return red("Page url: $zippy_page_url (error: file removed/deleted from zippy share or wrong zippyshare link)");
 		
@@ -171,24 +173,18 @@
 		$dl_path_part = "$folder_path\\$file_index.{$zippy_url_number[1]}.part.".fix_bad_path_names(rawurldecode($zippy_dl_url_name[1])).".part";
 		set_time_limit($dl_timeout); //0 = unlimited
 		
-		//download file if it doesn't already exist, or incomplete, of if overwrite on
+		//download file if it doesn't already exist, or incomplete, or if overwrite on
 		if (file_exists($dl_path)&&(!$overwrite))
-		{
 			return "<s>Skipping: $dl_path || $dl_url (file already exists and overwrite off)</s><br>\r\n";
-		}
 		else
 		{
 			create_folders($folder_path);
 			sleep($dl_fetch_delay);
 			
 			if (file_exists($dl_path))
-			{
 				unlink($dl_path); //delete
-			}
 			if (file_exists($dl_path_part))
-			{
 				unlink($dl_path_part);
-			}
 			
 			//download the file
 			$c_error = '';
@@ -213,13 +209,9 @@
 			
 			//when dl over, if present, delete old full file, and remove "part" from the name of the now finished file
 			if (file_exists($dl_path))
-			{
 				unlink($dl_path);
-			}
 			if (file_exists($dl_path_part))
-			{
 				rename($dl_path_part, $dl_path);
-			}
 			$file_size = round(filesize($dl_path)/(1024*1024),2);
 			return "<span class='green'>Download complete: $dl_path ($file_size MB) || DL URL: $dl_url</span><br>\r\n";
 		}
@@ -233,6 +225,8 @@
 		array_walk($folder_paths, function(&$value, $key, $parent_folder) {$value = "$parent_folder\\$key.$value";}, $parent_folder);
 		create_folders($folder_paths);
 		$folder_end = $end_folder === 'end' ? count($folder_names) - 1 : $end_folder; //if the number of folders to download is 'end' then download till the end
+		
+		//create log files
 		$datetime = new DateTime();
 		$datetime = $datetime->format('d-m-Y H:i:s (P \U\T\C)');
 		file_put_contents("$parent_folder\\log.txt", "Session started: $datetime (script $version_number)<br>\r\n", FILE_APPEND);
@@ -255,25 +249,5 @@
 			}
 		}
 	}
-	
-	//example usage
-	$parent_folder = 'DL';
-	
-	$start_folder = 0;
-	$end_folder = 'end';
-	
-	$start_link = 0;
-	$end_link = 'end';
-	
-	zippy_batch_dl($zippy_links, $folder_names, $parent_folder, $start_folder, $end_folder, $start_link, $end_link);
-	
-	//to-do maybe:
-	//add server to the file name
-	//add datetimes to log entries
-	//add arbitrarily nested array of folder/links, along with support to specify download start/end folder/link indexes by having them nested like the folder/link array
-	//check file size first (curl or read from site) //<font style="line-height:18px; font-size: 13px; font-weight: bold;">Size:</font>            <font style="line-height:18px; font-size: 13px;">29.52 MB</font><br /> //CURLOPT_RANGE, CURLOPT_WRITEFUNCTION, CURLOPT_HEADERFUNCTION //http://curl.haxx.se/libcurl/php/examples/callbacks.html // http://stackoverflow.com/questions/10991443/curl-get-remote-file-and-force-download-at-same-time
-	//re-download files if size doesn't match
-	//increase the dl time according to the dl speed, only if script execution time isn't set to infinite
-	//download resume //http://www.ankur.com/blog/106/php/resume-http-downloads-php-curl-fsockopen/ // http://stackoverflow.com/questions/2032924/how-to-partially-download-a-remote-file-with-curl // byteserving
 	
 ?>

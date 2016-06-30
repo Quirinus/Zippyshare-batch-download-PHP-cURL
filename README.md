@@ -1,5 +1,7 @@
 # Zippyshare-batch-download-PHP-cURL
-A PHP (5.6.3) script that uses cURL to download an array of Zippyshare links.
+A PHP (5.6.3) script that uses cURL to automatically download an array of Zippyshare links.
+
+[GitHub project](https://github.com/Quirinus/Zippyshare-batch-download-PHP-cURL)
 _____________________________________________________________________
 
 Run dl.php to start downloading... use the zippy\_batch\_dl function (at the end of the file) and feed it arguments. log.php will be created in the download folder.
