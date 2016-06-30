@@ -10,7 +10,7 @@ Run dl.php to start downloading... use the zippy\_batch\_dl function (at the end
 _____________________________________________________________________
 Features:
 - Accepts arrays of zippyshare links, grouped by associative array that contains DL folder names.
-- Adapts to temporary download link number generating algorithm changes reasonably well. (other scripts require manualy specifying it, thus having to stop downloading)
+- Tries to automatically solve the anti-bot code to get the validation number, in a number of ways. (other scripts require manualy specifying it, thus having to stop downloading, which can happen several times for longer batches, and prevents afk downloading)
 - Names files by index, as they appear in the array, then by download link number, and then by file name.
 - While downloading, the file name is modified to be *.part.file_name.part - when finished it is renamed to remove both .part .
 - When starting a new session, always deletes partially downloaded files and starts downloading them again.
