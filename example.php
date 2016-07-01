@@ -35,11 +35,8 @@
 	$start_link = 0;
 	$end_link = 'end';
 	
-	$folder_names = array_keys($zippy_links);
-	
 	print_r2($zippy_links);
-	print_r2($folder_names);
 	
-	zippy_batch_dl($zippy_links, $folder_names, $parent_folder, $start_folder, $end_folder, $start_link, $end_link);
+	zippy_download_batch($zippy_links, $parent_folder, $start_folder, $end_folder, $start_link, $end_link);
 	
 ?>

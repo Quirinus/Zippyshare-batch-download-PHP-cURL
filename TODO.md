@@ -20,3 +20,4 @@ To-Do:
   - increase the dl timeout according to the dl speed, only if script execution time isn't set to 0 (infinite)
   - - download resume: [Link 1](http://www.ankur.com/blog/106/php/resume-http-downloads-php-curl-fsockopen/), [Link 2](http://stackoverflow.com/questions/2032924/how-to-partially-download-a-remote-file-with-curl byteserving)
   - support for running two or more of these scripts in parallel
+  - put variables from eval(algorithm_variables_code) in their own namespace?
