@@ -1,4 +1,4 @@
-This repository is no longer maintained and contains some seriously low quality code!
+**This repository is no longer maintained and contains some seriously low quality code!**
 ______________________________________________________
 
 # Zippyshare-batch-download-PHP-cURL
