@@ -1,3 +1,6 @@
+This repository is no longer maintained and contains some seriously low quality code!
+______________________________________________________
+
 # Zippyshare-batch-download-PHP-cURL
 A PHP (5.6.3) script that uses cURL to automatically download an array of Zippyshare links.
 
